@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vuln-Mapper</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="mesh-bg" aria-hidden="true">
+        <span class="mesh-blob mesh-blob--1"></span>
+        <span class="mesh-blob mesh-blob--2"></span>
+        <span class="mesh-blob mesh-blob--3"></span>
+    </div>
+    <div class="noise-overlay" aria-hidden="true"></div>
+
+    <main class="page">
+
+        <!-- ============ HERO ============ -->
+        <section class="hero">
+            <nav class="navbar">
+                <div class="navbar__brand">
+                    <span class="navbar__dot"></span>
+                    Vuln&#8209;Mapper
+                </div>
+                <div class="navbar__status" id="statusPill">
+                    <span class="navbar__status-dot"></span>
+                    <span class="navbar__status-label">Standing by</span>
+                </div>
+            </nav>
+
+            <div class="hero__grid">
+                <div class="hero__copy">
+                    <p class="eyebrow">Recon &amp; Vulnerability Console</p>
+                    <h1 class="hero__title">
+                        See every <span class="grad-text">open door</span><br>
+                        before they do.
+                    </h1>
+                    <p class="hero__lede">
+                        Drop in an IP or a hostname. We sweep the ports, fingerprint
+                        every banner, cross-reference live CVE data, and fuzz for
+                        directories no one was supposed to find.
+                    </p>
+
+                    <div class="scan-console">
+                        <label class="scan-console__label" for="targetInput">Target host</label>
+                        <div class="scan-console__row">
+                            <div class="input-shell">
+                                <span class="input-shell__caret">&gt;</span>
+                                <input type="text" id="targetInput" placeholder="192.168.1.5  /  example.com" autocomplete="off" spellcheck="false">
+                            </div>
+                            <button id="scanBtn" type="button">
+                                <span class="btn__ripple" aria-hidden="true"></span>
+                                <span class="btn__label">Run Scan</span>
+                                <svg class="btn__arrow" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                        </div>
+                        <p class="scan-console__hint">No setup needed — results stream in below.</p>
+                    </div>
+                </div>
+
+                <div class="hero__orb-wrap">
+                    <div class="orb" id="scanOrb">
+                        <div class="orb__ring orb__ring--1"></div>
+                        <div class="orb__ring orb__ring--2"></div>
+                        <div class="orb__ring orb__ring--3"></div>
+                        <div class="orb__core">
+                            <svg viewBox="0 0 48 48" fill="none">
+                                <path d="M24 4 L42 12 V24 C42 35 34 42 24 44 C14 42 6 35 6 24 V12 Z" stroke="currentColor" stroke-width="2.5"/>
+                                <path d="M16 24 L22 30 L33 17" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="orb__sweep"></span>
+                    </div>
+                    <div class="orb-caption" id="orbCaption">awaiting target</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ RESULTS ============ -->
+        <section class="results-section">
+            <div id="results" class="results"></div>
+        </section>
+
+        <footer class="page-footer">
+            <span>Vuln&#8209;Mapper</span><span class="dot-sep">&middot;</span><span>Built for recon, not regret.</span>
+        </footer>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
