@@ -48,8 +48,10 @@ function attachTiltHandlers() {
     });
 }
 
-scanBtn.addEventListener('click', async () => {
-    const target = document.getElementById('targetInput').value;
+const targetInput = document.getElementById('targetInput');
+
+async function runScan() {
+    const target = targetInput.value;
 
     if (!target) {
         resultsDiv.innerHTML = "<div class='msg msg--error'>Please enter a target IP or URL.</div>";
@@ -137,5 +139,14 @@ scanBtn.addEventListener('click', async () => {
         resultsDiv.innerHTML = "<div class='msg msg--error'>Error connecting to backend server. Is Uvicorn running?</div>";
     } finally {
         scanBtn.disabled = false;
+    }
+}
+
+scanBtn.addEventListener('click', runScan);
+
+targetInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        runScan();
     }
 });
