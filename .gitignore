@@ -1,3 +1,6 @@
 venv/
 __pycache__/
 .DS_Store
+vulnmapper.db
+backend/vulnmapper.db
+.DS_Store

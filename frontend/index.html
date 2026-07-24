@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="audit.css">
 </head>
 <body>
 
@@ -27,26 +28,47 @@
                     <span class="navbar__dot"></span>
                     Vuln&#8209;Mapper
                 </div>
-                <div class="navbar__status" id="statusPill">
-                    <span class="navbar__status-dot"></span>
-                    <span class="navbar__status-label">Standing by</span>
+                <div class="navbar__right">
+                    <button class="hist-toggle" id="histToggle" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M12 8v4l3 2M21 12a9 9 0 1 1-9-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 4v5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        History
+                    </button>
+                    <div class="navbar__status" id="statusPill">
+                        <span class="navbar__status-dot"></span>
+                        <span class="navbar__status-label">Standing by</span>
+                    </div>
                 </div>
             </nav>
 
+            <!-- History panel -->
+            <div class="history-panel" id="historyPanel" hidden>
+                <div class="history-panel__head">
+                    <span>Recent scans</span>
+                    <button class="history-panel__refresh" id="histRefresh" type="button" aria-label="Refresh history">&#8635;</button>
+                </div>
+                <div class="history-list" id="historyList"></div>
+            </div>
+
             <div class="hero__grid">
                 <div class="hero__copy">
-                    <p class="eyebrow">Recon &amp; Vulnerability Console</p>
+                    <p class="eyebrow" id="eyebrow">Recon &amp; Vulnerability Console</p>
                     <h1 class="hero__title">
                         See every <span class="grad-text">open door</span><br>
                         before they do.
                     </h1>
-                    <p class="hero__lede">
+                    <p class="hero__lede" id="heroLede">
                         Drop in an IP or a hostname. We sweep the ports, fingerprint
                         every banner, cross-reference live CVE data, and fuzz for
                         directories no one was supposed to find.
                     </p>
 
-                    <div class="scan-console">
+                    <div class="mode-switch" role="tablist" aria-label="Scan mode">
+                        <span class="mode-switch__glider" id="modeGlider"></span>
+                        <button class="mode-switch__btn is-active" data-mode="recon" role="tab" type="button">Live Recon</button>
+                        <button class="mode-switch__btn" data-mode="audit" role="tab" type="button">Code Audit</button>
+                    </div>
+
+                    <div class="scan-console" id="liveConsole">
                         <label class="scan-console__label" for="targetInput">Target host</label>
                         <div class="scan-console__row">
                             <div class="input-shell">
@@ -60,6 +82,27 @@
                             </button>
                         </div>
                         <p class="scan-console__hint">No setup needed — results stream in below.</p>
+                    </div>
+
+                    <div class="scan-console code-console" id="codeConsole" hidden>
+                        <label class="scan-console__label">Source archive</label>
+                        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload a zip of your source code">
+                            <input type="file" id="zipInput" accept=".zip" hidden>
+                            <span class="dropzone__caret">&gt;</span>
+                            <span class="dropzone__text" id="dropzoneText">Drop a <b>.zip</b> of your source — or click to browse</span>
+                        </div>
+                        <div class="code-console__row">
+                            <button id="analyzeBtn" type="button" disabled>
+                                <span class="btn__ripple" aria-hidden="true"></span>
+                                <span class="btn__label">Analyze code</span>
+                                <svg class="btn__arrow" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                            <span class="llm-chip" id="llmChip">
+                                <span class="llm-chip__dot"></span>
+                                <span class="llm-chip__label">Checking local AI…</span>
+                            </span>
+                        </div>
+                        <p class="scan-console__hint">Bandit + Semgrep run locally. AI fixes run on your machine via Ollama — no keys, no cloud.</p>
                     </div>
                 </div>
 
@@ -79,6 +122,15 @@
                     <div class="orb-caption" id="orbCaption">awaiting target</div>
                 </div>
             </div>
+        </section>
+
+        <!-- ============ HISTORY ============ -->
+        <section class="history-section" id="historySection">
+            <div class="history-head">
+                <span class="section-title">Recent scans</span>
+                <button id="historyRefresh" class="ghost-btn" type="button">Refresh</button>
+            </div>
+            <div class="history-list" id="historyList"></div>
         </section>
 
         <!-- ============ RESULTS ============ -->
