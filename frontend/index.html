@@ -64,8 +64,8 @@
 
                     <div class="mode-switch" role="tablist" aria-label="Scan mode">
                         <span class="mode-switch__glider" id="modeGlider"></span>
-                        <button class="mode-switch__btn is-active" data-mode="recon" role="tab" type="button">Live Recon</button>
-                        <button class="mode-switch__btn" data-mode="audit" role="tab" type="button">Code Audit</button>
+                        <button class="mode-switch__btn" data-mode="recon" role="tab" type="button">Live Recon</button>
+                        <button class="mode-switch__btn is-active" data-mode="audit" role="tab" type="button">Code Audit</button>
                     </div>
 
                     <div class="scan-console" id="liveConsole">
@@ -144,6 +144,11 @@
 
     </main>
 
+    <!-- Deployment config:
+         Local dev -> leave this empty (frontend + backend on same server).
+         Split deploy -> set your backend's public URL, e.g.
+         window.VULN_MAPPER_API = "https://vuln-mapper-api.onrender.com"; -->
+    <script>window.VULN_MAPPER_API = "";</script>
     <script src="app.js"></script>
 </body>
 </html>

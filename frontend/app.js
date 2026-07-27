@@ -5,6 +5,18 @@
    SQLite, and can be re-opened from history or exported to PDF.
    ============================================================ */
 
+/* ============================================================
+   Vuln-Mapper front-end
+   ============================================================ */
+
+/* API base:
+   - Local dev: leave blank -> calls hit the same server (relative URLs).
+   - Split deploy (frontend on Vercel, backend on Render/Railway): set this to
+     your backend's public URL, e.g. "https://vuln-mapper-api.onrender.com".
+   You can also set window.VULN_MAPPER_API in a <script> before app.js loads. */
+const API_BASE = (window.VULN_MAPPER_API || "").replace(/\/$/, "");
+const api = (path) => `${API_BASE}${path}`;
+
 const scanBtn     = document.getElementById('scanBtn');
 const statusPill  = document.getElementById('statusPill');
 const statusLabel = statusPill.querySelector('.navbar__status-label');
@@ -84,7 +96,7 @@ function pollJob(jobId) {
     const started = Date.now();
     const tick = async () => {
       try {
-        const r = await fetch(`/api/job/${jobId}`);
+        const r = await fetch(api(`/api/job/${jobId}`));
         if (!r.ok) throw new Error('job lookup failed');
         const scan = await r.json();
         if (scan.status === 'done') return resolve(scan);
@@ -111,7 +123,7 @@ function exportBar(scan) {
   return `<div class="result-bar">
     <div class="result-bar__label">${kindLabel} · <span class="target-value">${escapeHtml(scan.label || '')}</span></div>
     <div class="result-bar__actions">
-      <a class="export-btn" href="/api/report/${scan.id}" target="_blank" rel="noopener">
+      <a class="export-btn" href="${api(`/api/report/${scan.id}`)}" target="_blank" rel="noopener">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Export PDF
       </a>
@@ -285,7 +297,7 @@ async function runScan() {
   orbCaption.textContent = 'sweeping target…';
   resultsDiv.innerHTML = infoMsg('Scanning ports and fuzzing directories...');
   try {
-    const r = await fetch(`/api/scan/start?target=${encodeURIComponent(target)}`, { method: 'POST' });
+    const r = await fetch(api(`/api/scan/start?target=${encodeURIComponent(target)}`), { method: 'POST' });
     if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.detail || r.status); }
     const { job_id } = await r.json();
     const scan = await pollJob(job_id);
@@ -318,7 +330,7 @@ async function checkLlmStatus() {
   llmChip.className = 'llm-chip is-checking';
   label.textContent = 'Checking AI…';
   try {
-    const s = await (await fetch('/api/llm-status')).json();
+    const s = await (await fetch(api('/api/llm-status'))).json();
     llmProvider = s.provider || 'ollama';
     const isCloud = llmProvider === 'gemini';
     if (s.ok && s.model_present) {
@@ -362,7 +374,7 @@ async function runAnalyze() {
   try {
     const fd = new FormData();
     fd.append('file', selectedFile);
-    const r = await fetch('/api/analyze/start', { method: 'POST', body: fd });
+    const r = await fetch(api('/api/analyze/start'), { method: 'POST', body: fd });
     if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.detail || r.status); }
     const { job_id } = await r.json();
     const scan = await pollJob(job_id);
@@ -400,7 +412,7 @@ async function handleFix(i, btn) {
       : 'Consulting the local model — the first call loads it into memory and can take 15–60s.'}
     <span class="scan-loader"><span></span><span></span><span></span></span></div>`;
   try {
-    const r = await fetch('/api/remediate', {
+    const r = await fetch(api('/api/remediate'), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(findings[i]),
     });
@@ -455,7 +467,7 @@ function pollAiReport(jobId, prog) {
     const started = Date.now();
     const tick = async () => {
       try {
-        const scan = await (await fetch(`/api/job/${jobId}`)).json();
+        const scan = await (await fetch(api(`/api/job/${jobId}`))).json();
         if (scan.status === 'done') return resolve(scan);
         if (scan.status === 'error') return reject(new Error(scan.error || 'report failed'));
         const p = scan.summary || {};
@@ -476,13 +488,13 @@ async function startAiReport(scanId, btn) {
     ? 'Starting — sending findings to Gemini…'
     : 'Starting — loading the local model…'}</div>`;
   try {
-    const r = await fetch(`/api/report/ai/${scanId}/start`, { method: 'POST' });
+    const r = await fetch(api(`/api/report/ai/${scanId}/start`), { method: 'POST' });
     if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.detail || r.status); }
     const { job_id, total } = await r.json();
     prog.innerHTML = aiProgressHtml(0, total);
     const done = await pollAiReport(job_id, prog);
     prog.innerHTML = `<div class="ai-progress__label ai-progress__label--ok">Report ready — downloading…</div>`;
-    window.location.href = `/api/report/${done.id}`;
+    window.location.href = api(`/api/report/${done.id}`);
     setTimeout(() => { prog.hidden = true; }, 4000);
   } catch (e) {
     prog.innerHTML = `<div class="ai-progress__label ai-progress__label--err">Report failed: ${escapeHtml(e.message || e)}</div>`;
@@ -520,7 +532,7 @@ function historyRow(s) {
       <span class="history-status history-status--${statusCls}">${escapeHtml(s.status)}</span>
       <div class="history-actions">
         ${canOpen ? `<button class="ghost-btn" data-open="${s.id}">Open</button>` : ''}
-        ${canOpen ? `<a class="ghost-btn" href="/api/report/${s.id}" target="_blank" rel="noopener">PDF</a>` : ''}
+        ${canOpen ? `<a class="ghost-btn" href="${api(`/api/report/${s.id}`)}" target="_blank" rel="noopener">PDF</a>` : ''}
         <button class="ghost-btn ghost-btn--x" data-del="${s.id}" title="Delete">×</button>
       </div>
     </div>`;
@@ -528,7 +540,7 @@ function historyRow(s) {
 
 async function loadHistory() {
   try {
-    const { scans } = await (await fetch('/api/history?limit=15')).json();
+    const { scans } = await (await fetch(api('/api/history?limit=15'))).json();
     if (!scans || !scans.length) {
       historyList.innerHTML = `<div class="history-empty">No scans yet — run one above and it'll be saved here.</div>`;
       return;
@@ -543,7 +555,7 @@ async function loadHistory() {
 
 async function openScan(id) {
   try {
-    const scan = await (await fetch(`/api/job/${id}`)).json();
+    const scan = await (await fetch(api(`/api/job/${id}`))).json();
     switchMode(scan.kind === 'audit' ? 'audit' : 'recon');
     renderResult(scan);
     setState('done', 'Loaded');
@@ -552,7 +564,7 @@ async function openScan(id) {
 
 async function deleteScan(id) {
   try {
-    await fetch(`/api/history/${id}`, { method: 'DELETE' });
+    await fetch(api(`/api/history/${id}`), { method: 'DELETE' });
     if (currentScanId === id) { resultsDiv.innerHTML = ''; currentScanId = null; }
     loadHistory();
   } catch (e) { /* ignore */ }
@@ -563,4 +575,5 @@ historyRefresh.addEventListener('click', loadHistory);
 /* ============================================================
    INIT
    ============================================================ */
+switchMode('audit');   // Code Audit is the landing view
 loadHistory();

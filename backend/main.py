@@ -6,6 +6,7 @@ import zipfile
 from typing import Optional
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -19,6 +20,18 @@ import db
 from report import build_report
 
 app = FastAPI()
+
+# Allow the frontend to call this API from another origin (e.g. a Vercel-hosted
+# UI talking to this backend on Render/Railway). Set ALLOWED_ORIGINS to a comma-
+# separated list of your frontend URLs in production; defaults to "*" for local dev.
+_origins = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _origins if o.strip()],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 db.init_db()
 
 
@@ -265,4 +278,11 @@ def llm_status():
 # ============================================================================ #
 # Mount the frontend LAST
 # ============================================================================ #
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
+# ============================================================================ #
+# Mount the frontend LAST -- only if it exists next to the backend (local dev).
+# In a split deploy the frontend lives on Vercel, so this is skipped and the
+# service runs API-only.
+# ============================================================================ #
+_frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
+if os.path.isdir(_frontend_dir):
+    app.mount("/", StaticFiles(directory=_frontend_dir, html=True), name="frontend")
