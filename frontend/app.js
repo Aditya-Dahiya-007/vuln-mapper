@@ -577,3 +577,6 @@ historyRefresh.addEventListener('click', loadHistory);
    ============================================================ */
 switchMode('audit');   // Code Audit is the landing view
 loadHistory();
+
+
+/*Hello i am back */
